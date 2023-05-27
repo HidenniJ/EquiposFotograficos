@@ -10,7 +10,7 @@ namespace EquiposFotograficos.Data.Entities
         public int Id { get; set; }
 
         [Required]
-        public string Nombre { get; set; }
+        public string Nombre { get; set; }= null!;
 
         [Required]
         public bool GestionClientes { get; set; }
@@ -21,6 +21,6 @@ namespace EquiposFotograficos.Data.Entities
         [Required]
         public bool GestionProductos { get; set; }
 
-        public ICollection<Usuario> Usuarios { get; set; }
+        public ICollection<Usuario> Usuarios { get; set; } = null!;
     }
 }
