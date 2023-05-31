@@ -11,7 +11,7 @@ namespace EquiposFotograficos.Data.Entities
         [Key]
         public int Id { get; set; }
 
-        [Required] 
+        [Required]
         public string Nombre { get; set; } = null!;
 
         [Required]
@@ -69,6 +69,19 @@ namespace EquiposFotograficos.Data.Entities
             }
 
             return cambio;
+        }
+        public ClienteResponse ToResponse()
+        {
+            return new ClienteResponse()
+            {
+                Id = Id,
+                Nombre = Nombre,
+                Apellido = Apellido,
+                Direccion = Direccion,
+                Telefono = Telefono,
+                CorreoElectronico = CorreoElectronico
+            };
+
         }
     }
 }
