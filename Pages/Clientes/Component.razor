@@ -1,0 +1,136 @@
+﻿@page "/clientes"
+<h3>Clientes(@Clientes.Count)</h3>
+
+@if (!ShowForm)
+{
+	<div class="mb-2">
+		<button class="btn  btn-success"
+			@onclick="()=>{ShowForm = !ShowForm;}">
+			Agregar
+		</button>
+	</div>
+}
+
+<div class="container">
+	@if (ShowForm)
+	{
+        <EditForm Model="request" OnValidSubmit="Send"> 
+			<div class="mb-3 input-group">
+				<label class="input-group-text">Nombre</label>
+				<InputText class="form-control" @bind-Value="@request.Nombre"></InputText>
+			</div>
+			<div class="mb-3 input-group">
+				<label class="input-group-text">Apellido</label>
+				<InputText class="form-control" @bind-Value="@request.Apellido"></InputText>
+			</div>
+			<div class="mb-3 input-group">
+				<label class="input-group-text">Direccion</label>
+				<InputText class="form-control" @bind-Value="@request.Direccion"></InputText>
+			</div>
+			<div class="mb-3 input-group">
+				<label class="input-group-text">Telefono</label>
+				<InputText class="form-control" @bind-Value="@request.Telefono"></InputText>
+			</div>
+			<div class="mb-3 input-group">
+				<label class="input-group-text">Correo Electronico</label>
+				<InputText class="form-control" @bind-Value="@request.CorreoElectronico"></InputText>
+			</div>
+			<div class="btn-group">
+				@*<button type="submit" class="btn btn-outline-success">Agregar</button>*@
+
+				<button type="submit" class="btn btn-outline-success" @onclick="Send">Agregar</button>
+				
+
+				<button @onclick="Cancelar" class="btn btn-outline-danger">Cancelar</button>
+			</div>
+
+		</EditForm>
+		<br/>
+	}
+	@foreach (var cliente in Clientes)
+	{
+		<div class="card"style="width:18rem;">
+			<div class="card-body">
+				<label class="card-title">@cliente.Nombre</label>
+				<div class="card-text">
+					<label><b>Apellido:</b> @cliente.Apellido</label>
+				</div>
+				<button class="btn-warning">Editar</button>
+				<button class="btn-dager">Eliminar</button>
+			</div>
+		</div>
+	}
+</div>
+
+
+@code {
+	public bool ShowForm { get; set; } = false;
+	public string Filtro { get; set; } = " ";
+
+	public List<ClienteResponse> Clientes { get; set; } =
+		new List<ClienteResponse>();
+
+	public ClienteRequest request { get; set; } = new ClienteRequest();
+
+	//funcion para limpiar 
+	void Cancelar()
+	{
+		request  = new ClienteRequest();
+		ShowForm = false;
+	}
+
+
+
+
+	async Task CargarClientes()
+	{
+		var resultado = await ClienteServices.Consultar( Filtro);
+		if (resultado.Success)
+		{
+			Clientes = resultado.Data!;
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		//var resultado = await ClienteServices.Consultar( Filtro);
+		await CargarClientes();
+	}
+
+	//Se encarga de crear el conctacto.
+	public async Task Send()
+	{
+		if (request.Id == 0)
+		{
+			//Debo registrar el cliente
+			var r = await ClienteServices.Crear(request);
+			if (r.Success)
+			{
+				Cancelar();
+				await CargarClientes();
+				StateHasChanged();
+			}
+		}
+		else
+		{
+			//Debo solicitar o modificar el cliente
+			var r = await ClienteServices.Modificar(request);
+			if (r.Success)
+			{
+				await CargarClientes();
+				StateHasChanged();
+			}
+		}
+	}
+
+	public void Seleccionar (int Id, bool showForm = true )
+	{
+		ShowForm = showForm;
+		request = Clientes
+	   .Where(c => c.Id == Id)
+		.Select(c => c.ToResquest())
+	.FirstOrDefault() ?? new ClienteRequest();
+
+		
+	}
+}
