@@ -1,4 +1,7 @@
-﻿namespace EquiposFotograficos.Data.Response
+﻿using EquiposFotograficos.Data.Request;
+using EquiposFotograficos.Data.Response;
+
+namespace EquiposFotograficos.Data.Response
 {
     public class ClienteResponse
     {
@@ -8,5 +11,20 @@
         public string Direccion { get; set; } = null!;
         public string Telefono { get; set; } = null!;
         public string CorreoElectronico { get; set; } = null!;
-    }
+
+
+		public ClienteRequest ToResquest()
+		{
+			return new ClienteRequest()
+			{
+				Id = Id,
+				Nombre = Nombre,
+				Apellido = Apellido,
+				Direccion = Direccion,
+				Telefono = Telefono,
+				CorreoElectronico = CorreoElectronico
+			};
+
+		}
+	}
 }
