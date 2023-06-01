@@ -1,5 +1,6 @@
 ﻿namespace EquiposFotograficos.Data.Request
 {
+    //Clase de respuesta
     public class ProveedorRequest
     {
         public int Id { get; set; }

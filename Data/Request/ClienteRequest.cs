@@ -1,6 +1,6 @@
 ﻿namespace EquiposFotograficos.Data.Request
 {
-    
+    //Clases de Peticion
     public class ClienteRequest
     {
         public int Id { get; set; }

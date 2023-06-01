@@ -1,5 +1,4 @@
 ﻿using EquiposFotograficos.Data.Request;
-using EquiposFotograficos.Data.Response;
 
 namespace EquiposFotograficos.Data.Response
 {
@@ -12,7 +11,7 @@ namespace EquiposFotograficos.Data.Response
         public string Telefono { get; set; } = null!;
         public string CorreoElectronico { get; set; } = null!;
 
-
+		//Función ToResquest() 
 		public ClienteRequest ToResquest()
 		{
 			return new ClienteRequest()
