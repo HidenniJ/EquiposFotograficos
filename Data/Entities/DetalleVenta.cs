@@ -11,11 +11,11 @@ namespace EquiposFotograficos.Data.Entities
 
         [ForeignKey("Venta")]
         public int VentaId { get; set; }
-        public Venta Venta { get; set; }
+        public Venta Venta { get; set; } = null!;
 
         [ForeignKey("Producto")]
         public int ProductoId { get; set; }
-        public Producto Producto { get; set; }
+        public Producto Producto { get; set; } = null!;
 
         [Required]
         public int Cantidad { get; set; }

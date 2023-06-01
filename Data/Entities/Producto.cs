@@ -89,6 +89,22 @@ namespace EquiposFotograficos.Data.Entities
 
             return cambio;
         }
+		public ProductoResponse ToResponse()
+		{
+			return new ProductoResponse()
+			{
+				Id = Id,
+				Nombre = Nombre,
+				Descripcion = Descripcion,
+				Categoria = Categoria,
+				Marca = Marca,
+				Modelo = Modelo,
+				PrecioDeVenta = PrecioDeVenta,
+				PrecioDeCompra = PrecioDeCompra,
+				CantidadEnInventario = CantidadEnInventario
+			};
+		}
 
-    }
+
+	}
 }
