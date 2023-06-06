@@ -13,7 +13,7 @@ namespace EquiposFotograficos.Data.Entities
 
         [ForeignKey("Cliente")]
         public int ClienteId { get; set; }
-        public Cliente Cliente { get; set; } = null!;
+        public Usuario Cliente { get; set; } = null!;
 
         [Required]
         public DateTime Fecha { get; set; }

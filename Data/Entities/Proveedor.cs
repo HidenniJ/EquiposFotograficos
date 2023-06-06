@@ -59,5 +59,13 @@ namespace EquiposFotograficos.Data.Entities
 
             return cambio;
         }
+
+        public ProveedorResponse ToResponse() => new() {
+            Id = Id,
+            Nombre = Nombre,
+            Direccion = Direccion,
+            Telefono = Telefono,
+            CorreoElectronico = CorreoElectronico
+        };
     }
 }

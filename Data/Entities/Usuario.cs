@@ -59,7 +59,7 @@ namespace EquiposFotograficos.Data.Entities
         {
             NombreUsuario = NombreUsuario,
             CorreoElectronico = CorreoElectronico,
-            Contrasena = Contrasena
+           // Contrasena = Contrasena
         };
     }
 }
