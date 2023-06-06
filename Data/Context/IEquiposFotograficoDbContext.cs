@@ -1,5 +1,7 @@
 ﻿using EquiposFotograficos.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace EquiposFotograficos.Data.Context
 {
