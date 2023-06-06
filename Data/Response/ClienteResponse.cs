@@ -12,7 +12,7 @@ namespace EquiposFotograficos.Data.Response
         public string CorreoElectronico { get; set; } = null!;
 
 		//Función ToResquest() 
-		public ClienteRequest ToResquest()
+		public ClienteRequest ToRequest()
 		{
 			return new ClienteRequest()
 			{

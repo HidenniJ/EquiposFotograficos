@@ -1,4 +1,6 @@
-﻿using EquiposFotograficos.Data.Request;
+﻿using EquiposFotograficos.Data.Entities;
+using EquiposFotograficos.Data.Request;
+using EquiposFotograficos.Data.Response;
 namespace EquiposFotograficos.Data.Response
 {
     public class ProveedorResponse
@@ -20,5 +22,7 @@ namespace EquiposFotograficos.Data.Response
 				CorreoElectronico = CorreoElectronico
 			};
 		}
-	}
+        
+
+    }
 }
