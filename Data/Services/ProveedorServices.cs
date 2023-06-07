@@ -2,6 +2,7 @@
 using EquiposFotograficos.Data.Entities;
 using EquiposFotograficos.Data.Request;
 using EquiposFotograficos.Data.Response;
+using EquiposFotograficos.Data.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace EquiposFotograficos.Data.Services
 {
 
 
-    public class ProveedorServices 
+    public class ProveedorServices : IProveedorServices
     {
         private readonly IEquiposFotograficoDbContext dbContext;
 
