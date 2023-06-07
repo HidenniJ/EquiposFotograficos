@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using EquiposFotograficos.Data;
 using EquiposFotograficos.Data.Context;
 using EquiposFotograficos.Data.Services;
+using EquiposFotograficos.Data.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,9 @@ builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddDbContext<EquiposFotograficoDbContext>(); //se utiliza para registrar el contexto de la base de dato
 builder.Services.AddScoped<IEquiposFotograficoDbContext, EquiposFotograficoDbContext>();//se utiliza para registrar el contexto de la base de dato es como servicio con el tipo de interfaz
 builder.Services.AddScoped<IClienteServices, ClienteServices>();
+builder.Services.AddScoped<IEmpleadoServices, EmpleadoServices >();
+builder.Services.AddScoped<IProductoServices, ProductoServices>();
+
 
 var app = builder.Build();
 
