@@ -1,7 +1,7 @@
 ﻿using EquiposFotograficos.Data.Request;
 using EquiposFotograficos.Data.Response;
 
-namespace EquiposFotograficos.Data.Services
+namespace EquiposFotograficos.Data.Services.Interfaces
 {
     public interface IClienteServices
     {
