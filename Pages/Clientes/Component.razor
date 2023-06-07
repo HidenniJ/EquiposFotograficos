@@ -1,6 +1,5 @@
 ﻿@page "/Clientes"
-
-
+@inject IJSRuntime JSRuntime
 <h3>Clientes (@Clientes.Count)</h3>
 
 @if (!ShowForm)
@@ -38,7 +37,7 @@
             </div>
             <div class="btn-group">
                 <button type="submit" class="btn btn-outline-success">
-                    <span class="bi bi-check"></span> Agregar
+                    <span class="bi bi-check"></span> @GetFormButtonLabel()
                 </button>
                 <button type="button" class="btn btn-outline-danger" @onclick="Cancelar">
                     <span class="bi bi-x"></span> Cancelar
@@ -48,33 +47,38 @@
         <br />
     }
 
-
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Apellido</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var cliente in Clientes)
-            {
+    @if (!ShowForm)
+    {
+        <table class="table">
+            <thead>
                 <tr>
-                    <td>@cliente.Nombre</td>
-                    <td>@cliente.Apellido</td>
-                    <td>
-                        <button class="btn btn-warning" @onclick="() => Seleccionar(cliente.Id)">
-                            <span class="bi bi-pencil"></span> Editar
-                        </button>
-                        <button class="btn btn-danger">
-                            <span class="bi bi-trash"></span> Eliminar
-                        </button>
-                    </td>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Direccion</th>
+                    <th>Acciones</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var cliente in Clientes)
+                {
+                    <tr>
+                        <td>@cliente.Nombre</td>
+                        <td>@cliente.Apellido</td>
+                        <td>@cliente.Direccion</td>
+                        <td>
+                            <button class="btn btn-warning" @onclick="() => Seleccionar(cliente.Id)">
+                                <span class="bi bi-pencil"></span> Editar
+                            </button>
+                            <button @onclick="()=>Eliminar(cliente)"
+                                    class="btn btn-danger">
+                                <span class="bi bi-trash"></span> Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
 </div>
 
 @code {
@@ -84,6 +88,11 @@
     public List<ClienteResponse> Clientes { get; set; } = new List<ClienteResponse>();
 
     public ClienteRequest request { get; set; } = new ClienteRequest();
+
+    private string GetFormButtonLabel()
+    {
+        return request.Id == 0 ? "Agregar" : "Modificar";
+    }
 
     // Función para limpiar el formulario
     void Cancelar()
@@ -109,41 +118,74 @@
     // Método para agregar o actualizar el cliente
     public async Task EnviarCliente()
     {
-        if (request.Id == 0)
+        // Validar campos obligatorios
+        if (string.IsNullOrWhiteSpace(request.Nombre) ||
+            string.IsNullOrWhiteSpace(request.Apellido) ||
+            string.IsNullOrWhiteSpace(request.Direccion) ||
+            string.IsNullOrWhiteSpace(request.Telefono) ||
+            string.IsNullOrWhiteSpace(request.CorreoElectronico))
         {
-            // Registrar el cliente
-            var r = await ClienteServices.Crear(request);
-            if (r.Success)
-            {
-                Cancelar();
-                await CargarClientes();
-                StateHasChanged();
-            }
+            // Mostrar mensaje de error si algún campo está vacío
+            // Puedes utilizar estilos de Bootstrap para mostrar el mensaje
+            // Aquí se muestra un ejemplo utilizando una alerta de Bootstrap:
+            <div class="alert alert-danger" role="alert">
+                Por favor completa todos los campos.
+            </div>
+            return;
         }
-        else
+
+        // Mostrar mensaje de confirmación
+        var confirmResult = await JSRuntime.InvokeAsync<bool>("confirm", new object?[] { "¿Estás seguro de realizar esta acción?" });
+
+        if (confirmResult)
         {
-            // Actualizar el cliente
-            var r = await ClienteServices.Modificar(request);
-            if (r.Success)
+            if (request.Id == 0)
             {
-                Cancelar();
-                await CargarClientes();
-                StateHasChanged();
-            }
-            else if (request.Id < 0)
-            {
-                // Eliminar el cliente
-                var resultado = await ClienteServices.Eliminar(new ClienteRequest { Id = -request.Id });
-                if (resultado.Success)
+                // Registrar el cliente
+                var r = await ClienteServices.Crear(request);
+                if (r.Success)
                 {
                     Cancelar();
                     await CargarClientes();
                     StateHasChanged();
+                    // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
+                    <div class="alert alert-success" role="alert">
+                        El cliente se ha agregado correctamente.
+                    </div>
+                }
+            }
+            else
+            {
+                // Actualizar el cliente
+                var r = await ClienteServices.Modificar(request);
+                if (r.Success)
+                {
+                    Cancelar();
+                    await CargarClientes();
+                    StateHasChanged();
+                    // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
+                    <div class="alert alert-success" role="alert">
+                        El cliente se ha actualizado correctamente.
+                    </div>
+                }
+                else if (request.Id < 0)
+                {
+                    // Eliminar el cliente
+                    var resultado = await ClienteServices.Eliminar(new ClienteRequest { Id = -request.Id });
+                    if (resultado.Success)
+                    {
+                        Cancelar();
+                        await CargarClientes();
+                        StateHasChanged();
+                        // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
+                        <div class="alert alert-success" role="alert">
+                            El cliente se ha eliminado correctamente.
+                        </div>
+                    }
                 }
             }
         }
     }
-
 
     public void Seleccionar(int Id)
     {
@@ -155,4 +197,25 @@
     {
         ShowForm = true;
     }
+
+    public async Task Eliminar(ClienteResponse cliente)
+    {
+        var confirmResult = await JSRuntime.InvokeAsync<bool>("confirm", new object?[] { "¿Estás seguro de eliminar este cliente?" });
+
+        if (confirmResult)
+        {
+            var resultado = await ClienteServices.Eliminar(cliente.ToRequest());
+            if (resultado.Success)
+            {
+                await CargarClientes();
+                StateHasChanged();
+                // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
+                <div class="alert alert-success" role="alert">
+                    El cliente se ha eliminado correctamente.
+                </div>
+            }
+        }
+    }
 }
+
+
