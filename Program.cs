@@ -16,6 +16,9 @@ builder.Services.AddScoped<IEquiposFotograficoDbContext, EquiposFotograficoDbCon
 builder.Services.AddScoped<IClienteServices, ClienteServices>();
 builder.Services.AddScoped<IEmpleadoServices, EmpleadoServices >();
 builder.Services.AddScoped<IProductoServices, ProductoServices>();
+builder.Services.AddScoped<IUsuarioServices, UsuarioServices>();
+builder.Services.AddScoped<IVentaServices, VentaServices>();
+builder.Services.AddScoped<IProveedorServices,ProveedorServices>();
 
 
 var app = builder.Build();

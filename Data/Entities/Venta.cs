@@ -57,5 +57,15 @@ namespace EquiposFotograficos.Data.Entities
 
             return cambio;
         }
+        public VentaResponse ToResponse()
+        {
+            return new VentaResponse()
+            {
+                Id = Id,
+                ClienteId = ClienteId,
+                Fecha = Fecha,
+                Total = Total
+            };
+        }
     }
 }
