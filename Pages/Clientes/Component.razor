@@ -1,5 +1,6 @@
 ﻿@page "/Clientes"
 @inject IJSRuntime JSRuntime
+
 <h3>Clientes (@Clientes.Count)</h3>
 
 @if (!ShowForm)
@@ -126,11 +127,7 @@
             string.IsNullOrWhiteSpace(request.CorreoElectronico))
         {
             // Mostrar mensaje de error si algún campo está vacío
-            // Puedes utilizar estilos de Bootstrap para mostrar el mensaje
-            // Aquí se muestra un ejemplo utilizando una alerta de Bootstrap:
-            <div class="alert alert-danger" role="alert">
-                Por favor completa todos los campos.
-            </div>
+            await MostrarMensajeError("Por favor completa todos los campos.");
             return;
         }
 
@@ -149,9 +146,7 @@
                     await CargarClientes();
                     StateHasChanged();
                     // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
-                    <div class="alert alert-success" role="alert">
-                        El cliente se ha agregado correctamente.
-                    </div>
+                    await MostrarMensajeExito("El cliente se ha agregado correctamente.");
                 }
             }
             else
@@ -164,9 +159,7 @@
                     await CargarClientes();
                     StateHasChanged();
                     // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
-                    <div class="alert alert-success" role="alert">
-                        El cliente se ha actualizado correctamente.
-                    </div>
+                    await MostrarMensajeExito("El cliente se ha actualizado correctamente.");
                 }
                 else if (request.Id < 0)
                 {
@@ -178,9 +171,7 @@
                         await CargarClientes();
                         StateHasChanged();
                         // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
-                        <div class="alert alert-success" role="alert">
-                            El cliente se ha eliminado correctamente.
-                        </div>
+                        await MostrarMensajeExito("El cliente se ha eliminado correctamente.");
                     }
                 }
             }
@@ -210,12 +201,19 @@
                 await CargarClientes();
                 StateHasChanged();
                 // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
-                <div class="alert alert-success" role="alert">
-                    El cliente se ha eliminado correctamente.
-                </div>
+                await MostrarMensajeExito("El cliente se ha eliminado correctamente.");
             }
         }
     }
-}
 
+    private async Task MostrarMensajeExito(string mensaje)
+    {
+        await JSRuntime.InvokeVoidAsync("alert", mensaje);
+    }
+
+    private async Task MostrarMensajeError(string mensaje)
+    {
+        await JSRuntime.InvokeVoidAsync("alert", mensaje);
+    }
+}
 
