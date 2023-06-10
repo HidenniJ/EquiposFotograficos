@@ -101,6 +101,28 @@ namespace EquiposFotograficos.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Usuarios",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NombreUsuario = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CorreoElectronico = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Contrasena = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RolId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Usuarios", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Usuarios_Roles_RolId",
+                        column: x => x.RolId,
+                        principalTable: "Roles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Ventas",
                 columns: table => new
                 {
@@ -114,31 +136,9 @@ namespace EquiposFotograficos.Migrations
                 {
                     table.PrimaryKey("PK_Ventas", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Ventas_Clientes_ClienteId",
+                        name: "FK_Ventas_Usuarios_ClienteId",
                         column: x => x.ClienteId,
-                        principalTable: "Clientes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Usuarios",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    NombreUsuario = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CorreoElectronico = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Contraseña = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RolId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Usuarios", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Usuarios_Roles_RolId",
-                        column: x => x.RolId,
-                        principalTable: "Roles",
+                        principalTable: "Usuarios",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -196,6 +196,9 @@ namespace EquiposFotograficos.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Clientes");
+
+            migrationBuilder.DropTable(
                 name: "DetalleVentas");
 
             migrationBuilder.DropTable(
@@ -205,19 +208,16 @@ namespace EquiposFotograficos.Migrations
                 name: "Proveedores");
 
             migrationBuilder.DropTable(
-                name: "Usuarios");
-
-            migrationBuilder.DropTable(
                 name: "Productos");
 
             migrationBuilder.DropTable(
                 name: "Ventas");
 
             migrationBuilder.DropTable(
-                name: "Roles");
+                name: "Usuarios");
 
             migrationBuilder.DropTable(
-                name: "Clientes");
+                name: "Roles");
         }
     }
 }

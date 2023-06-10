@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EquiposFotograficos.Migrations
 {
     [DbContext(typeof(EquiposFotograficoDbContext))]
-    [Migration("20230523152346_InitialCreate")]
+    [Migration("20230610224148_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -235,7 +235,7 @@ namespace EquiposFotograficos.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Contraseña")
+                    b.Property<string>("Contrasena")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -313,7 +313,7 @@ namespace EquiposFotograficos.Migrations
 
             modelBuilder.Entity("EquiposFotograficos.Data.Entities.Venta", b =>
                 {
-                    b.HasOne("EquiposFotograficos.Data.Entities.Cliente", "Cliente")
+                    b.HasOne("EquiposFotograficos.Data.Entities.Usuario", "Cliente")
                         .WithMany()
                         .HasForeignKey("ClienteId")
                         .OnDelete(DeleteBehavior.Cascade)
