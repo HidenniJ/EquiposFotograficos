@@ -7,9 +7,10 @@
 {
     <div class="mb-2">
         <button class="btn btn-success" @onclick="MostrarFormulario">
-            <span class="bi bi-plus"></span> Agregar
+            <span class="oi oi-plus" aria-hidden="true"></span> Agregar
         </button>
     </div>
+
 }
 
 <div class="container">
@@ -36,13 +37,16 @@
                 <label class="input-group-text">Correo Electrónico</label>
                 <InputText class="form-control" @bind-Value="@request.CorreoElectronico"></InputText>
             </div>
+
             <div class="btn-group">
                 <button type="submit" class="btn btn-outline-success">
-                    <span class="bi bi-check"></span> @GetFormButtonLabel()
+                    <span class="oi oi-check" aria-hidden="true"></span> @GetFormButtonLabel()
                 </button>
+
                 <button type="button" class="btn btn-outline-danger" @onclick="Cancelar">
-                    <span class="bi bi-x"></span> Cancelar
+                    <span class="oi oi-x" aria-hidden="true"></span> Cancelar
                 </button>
+
             </div>
         </EditForm>
         <br />
@@ -68,11 +72,11 @@
                         <td>@cliente.Direccion</td>
                         <td>
                             <button class="btn btn-warning" @onclick="() => Seleccionar(cliente.Id)">
-                                <span class="bi bi-pencil"></span> Editar
+                                <span class="oi oi-pencil"></span> Editar
                             </button>
                             <button @onclick="()=>Eliminar(cliente)"
                                     class="btn btn-danger">
-                                <span class="bi bi-trash"></span> Eliminar
+                                <span class="oi oi-trash"></span> Eliminar
                             </button>
                         </td>
                     </tr>
