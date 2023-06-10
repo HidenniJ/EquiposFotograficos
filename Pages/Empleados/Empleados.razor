@@ -1,4 +1,5 @@
-@page "/"
+@page "/empleados"
+@inject IJSRuntime JSRuntime
 
 <h3>Clientes (@Clientes.Count)</h3>
 
@@ -15,7 +16,7 @@
 <div class="container">
     @if (ShowForm)
     {
-        <EditForm Model="request" OnValidSubmit="EnviarCliente">
+        <EditForm Model="request" OnValidSubmit="EnviarEmpleado">
             <div class="mb-3 input-group">
                 <label class="input-group-text">Nombre</label>
                 <InputText class="form-control" @bind-Value="@request.Nombre"></InputText>
@@ -35,6 +36,18 @@
             <div class="mb-3 input-group">
                 <label class="input-group-text">Correo Electrónico</label>
                 <InputText class="form-control" @bind-Value="@request.CorreoElectronico"></InputText>
+            </div>
+            <div class="mb-3 input-group">
+                <label class="input-group-text">Cargo</label>
+                <InputText class="form-control" @bind-Value="@request.Cargo"></InputText>
+            </div>
+            <div class="mb-3 input-group">
+                <label class="input-group-text">Fecha De Contratacion</label>
+                <InputText class="form-control" @bind-Value="@request.FechaDeContratacion"></InputText>
+            </div>
+            <div class="mb-3 input-group">
+                <label class="input-group-text">Salario</label>
+                <InputText class="form-control" @bind-Value="@request.Salario"></InputText>
             </div>
 
             <div class="btn-group">
@@ -59,16 +72,25 @@
                     <th>Nombre</th>
                     <th>Apellido</th>
                     <th>Direccion</th>
-                    <th>Acciones</th>
+                    <th>Telefono</th>
+                    <th>Correo Electronico</th>
+                    <th>Cargo</th>
+                    <th>Fecha De Contratñ</th>
+                    <th>Salario</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var cliente in Clientes)
+                @foreach (var empleado in Empleados)
                 {
                     <tr>
-                        <td>@cliente.Nombre</td>
-                        <td>@cliente.Apellido</td>
-                        <td>@cliente.Direccion</td>
+                        <td>@empleado.Nombre</td>
+                        <td>@empleado.Apellido</td>
+                        <td>@empleado.Direccion</td>
+                        <td>@empleado.Telefono</td>
+                        <td>@empleado.CorreoElectronico</td>
+                        <td>@empleado.Cargo</td>
+                        <td>@empleado.FechaDeContratacion</td>
+                        <td>@empleado.SalarioBase</td>
                         <td>
                             <button class="btn btn-warning" @onclick="() => Seleccionar(cliente.Id)">
                                 <span class="oi oi-pencil"></span> Editar
@@ -86,3 +108,141 @@
 </div>
 
 @code
+{
+    public bool ShowForm { get; set; } = false;
+    public string Filtro { get; set; } = " ";
+
+    public List<EmpleadoResponse> Empleados { get; set; } = new List<EmpleadoResponse>();
+
+    public EmpleadoRequest request { get; set; } = new EmpleadoRequest();
+
+    private string GetFormButtonLabel()
+    {
+        return request.Id == 0 ? "Agregar" : "Modificar";
+    }
+
+    // Función para limpiar el formulario
+    void Cancelar()
+    {
+        request = new EmpleadoRequest();
+        ShowForm = false;
+    }
+
+    async Task CargarEmpleados()
+    {
+        var resultado = await EmpleadoServices.Consultar(Filtro);
+        if (resultado.Success)
+        {
+            Empleados = resultado.Data!;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarEmpleados();
+    }
+
+    // Método para agregar o actualizar el cliente
+    public async Task EnviarCliente()
+    {
+        // Validar campos obligatorios
+        if (string.IsNullOrWhiteSpace(request.Nombre) ||
+            string.IsNullOrWhiteSpace(request.Apellido) ||
+            string.IsNullOrWhiteSpace(request.Direccion) ||
+            string.IsNullOrWhiteSpace(request.Telefono) ||
+            string.IsNullOrWhiteSpace(request.CorreoElectronico) ||
+            string.IsNullOrWhiteSpace(request.Cargo) ||
+            string.IsNullOrWhiteSpace(request.FechaDeContratacion) ||
+            string.IsNullOrWhiteSpace(request.SalarioBase))
+    )
+        {
+            // Mostrar mensaje de error si algún campo está vacío
+            await MostrarMensajeError("Por favor completa todos los campos.");
+            return;
+        }
+
+        // Mostrar mensaje de confirmación
+        var confirmResult = await JSRuntime.InvokeAsync<bool>("confirm", new object?[] { "¿Estás seguro de realizar esta acción?" });
+
+        if (confirmResult)
+        {
+            if (request.Id == 0)
+            {
+                // Registrar el cliente
+                var r = await EmpleadoServices.Crear(request);
+                if (r.Success)
+                {
+                    Cancelar();
+                    await CargarEmpleados();
+                    StateHasChanged();
+                    // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
+                    await MostrarMensajeExito("El cliente se ha agregado correctamente.");
+                }
+            }
+            else
+            {
+                // Actualizar el cliente
+                var r = await EmpleadoServices.Modificar(request);
+                if (r.Success)
+                {
+                    Cancelar();
+                    await CargarEmpleados();
+                    StateHasChanged();
+                    // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
+                    await MostrarMensajeExito("El cliente se ha actualizado correctamente.");
+                }
+                else if (request.Id < 0)
+                {
+                    // Eliminar el cliente
+                    var resultado = await EmpleadoServices.Eliminar(new EmpleadoRequest { Id = -request.Id });
+                    if (resultado.Success)
+                    {
+                        Cancelar();
+                        await CargarEmpleados();
+                        StateHasChanged();
+                        // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
+                        await MostrarMensajeExito("El cliente se ha eliminado correctamente.");
+                    }
+                }
+            }
+        }
+    }
+
+    public void Seleccionar(int Id)
+    {
+        ShowForm = true;
+        request = Empleados.FirstOrDefault(c => c.Id == Id)?.ToRequest() ?? new EmpleadoRequest();
+    }
+
+    private void MostrarFormulario()
+    {
+        ShowForm = true;
+    }
+
+    public async Task Eliminar(EmpleadoResponse cliente)
+    {
+        var confirmResult = await JSRuntime.InvokeAsync<bool>("confirm", new object?[] { "¿Estás seguro de eliminar este cliente?" });
+
+        if (confirmResult)
+        {
+            var resultado = await EmpleadoServices.Eliminar(empleado.ToRequest());
+            if (resultado.Success)
+            {
+                await CargarEmpleados();
+                StateHasChanged();
+                // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
+                await MostrarMensajeExito("El cliente se ha eliminado correctamente.");
+            }
+        }
+    }
+
+    private async Task MostrarMensajeExito(string mensaje)
+    {
+        await JSRuntime.InvokeVoidAsync("alert", mensaje);
+    }
+
+    private async Task MostrarMensajeError(string mensaje)
+    {
+        await JSRuntime.InvokeVoidAsync("alert", mensaje);
+    }
+}
