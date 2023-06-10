@@ -1,0 +1,88 @@
+@page "/"
+
+<h3>Clientes (@Clientes.Count)</h3>
+
+@if (!ShowForm)
+{
+    <div class="mb-2">
+        <button class="btn btn-success" @onclick="MostrarFormulario">
+            <span class="oi oi-plus" aria-hidden="true"></span> Agregar
+        </button>
+    </div>
+
+}
+
+<div class="container">
+    @if (ShowForm)
+    {
+        <EditForm Model="request" OnValidSubmit="EnviarCliente">
+            <div class="mb-3 input-group">
+                <label class="input-group-text">Nombre</label>
+                <InputText class="form-control" @bind-Value="@request.Nombre"></InputText>
+            </div>
+            <div class="mb-3 input-group">
+                <label class="input-group-text">Apellido</label>
+                <InputText class="form-control" @bind-Value="@request.Apellido"></InputText>
+            </div>
+            <div class="mb-3 input-group">
+                <label class="input-group-text">Dirección</label>
+                <InputText class="form-control" @bind-Value="@request.Direccion"></InputText>
+            </div>
+            <div class="mb-3 input-group">
+                <label class="input-group-text">Teléfono</label>
+                <InputText class="form-control" @bind-Value="@request.Telefono"></InputText>
+            </div>
+            <div class="mb-3 input-group">
+                <label class="input-group-text">Correo Electrónico</label>
+                <InputText class="form-control" @bind-Value="@request.CorreoElectronico"></InputText>
+            </div>
+
+            <div class="btn-group">
+                <button type="submit" class="btn btn-outline-success">
+                    <span class="oi oi-check" aria-hidden="true"></span> @GetFormButtonLabel()
+                </button>
+
+                <button type="button" class="btn btn-outline-danger" @onclick="Cancelar">
+                    <span class="oi oi-x" aria-hidden="true"></span> Cancelar
+                </button>
+
+            </div>
+        </EditForm>
+        <br />
+    }
+
+    @if (!ShowForm)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Direccion</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var cliente in Clientes)
+                {
+                    <tr>
+                        <td>@cliente.Nombre</td>
+                        <td>@cliente.Apellido</td>
+                        <td>@cliente.Direccion</td>
+                        <td>
+                            <button class="btn btn-warning" @onclick="() => Seleccionar(cliente.Id)">
+                                <span class="oi oi-pencil"></span> Editar
+                            </button>
+                            <button @onclick="()=>Eliminar(cliente)"
+                                    class="btn btn-danger">
+                                <span class="oi oi-trash"></span> Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code
