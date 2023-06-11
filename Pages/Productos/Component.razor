@@ -1,0 +1,246 @@
+@page "/productos"
+@inject IJSRuntime JSRuntime
+
+<h3>Empleados (@MyProperty.Count)</h3>
+
+@if (!ShowForm)
+{
+    <div class="mb-2">
+        <button class="btn btn-success" @onclick="MostrarFormulario">
+            <span class="oi oi-plus" aria-hidden="true"></span> Agregar
+        </button>
+    </div>
+
+}
+
+<div class="container">
+    @if (ShowForm)
+    {
+        <EditForm Model="request" OnValidSubmit="EnviarCliente">
+            <div class="mb-3 input-group">
+                <label class="input-group-text">Nombre</label>
+                <InputText class="form-control" @bind-Value="@request.Nombre"></InputText>
+            </div>
+            <div class="mb-3 input-group">
+                <label class="input-group-text">Descripcion</label>
+                <InputText class="form-control" @bind-Value="@request.Descripcion"></InputText>
+            </div>
+            <div class="mb-3 input-group">
+                <label class="input-group-text">Categoria</label>
+                <InputText class="form-control" @bind-Value="@request.Categoria"></InputText>
+            </div>
+            <div class="mb-3 input-group">
+                <label class="input-group-text">Marca</label>
+                <InputText class="form-control" @bind-Value="@request.Marca"></InputText>
+            </div>
+            <div class="mb-3 input-group">
+                <label class="input-group-text">Modelo</label>
+                <InputText class="form-control" @bind-Value="@request.Modelo"></InputText>
+            </div>
+            <div class="mb-3 input-group">
+                <label class="input-group-text">PrecioDeVenta</label>
+                <InputNumber class="form-control" @bind-Value="@request.PrecioDeVenta"></InputNumber>
+            </div>
+            <div class="mb-3 input-group">
+                <label class="input-group-text">PrecioDeCompra</label>
+                <InputNumber class="form-control" @bind-Value="@request.PrecioDeCompra"></InputNumber>
+            </div>
+            <div class="mb-3 input-group">
+                <label class="input-group-text">Cantidad</label>
+                <InputNumber class="form-control" @bind-Value="@request.CantidadEnInventario"></InputNumber>
+            </div>
+
+            <div class="btn-group">
+                <button type="submit" class="btn btn-outline-success">
+                    <span class="oi oi-check" aria-hidden="true"></span> @GetFormButtonLabel()
+                </button>
+
+                <button type="button" class="btn btn-outline-danger" @onclick="Cancelar">
+                    <span class="oi oi-x" aria-hidden="true"></span> Cancelar
+                </button>
+
+            </div>
+        </EditForm>
+        <br />
+    }
+    @if (!ShowForm)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripcio</th>
+                    <th>Categoria</th>
+                    <th>Marca</th>
+                    <th>Model</th>
+                    <th>Precio Venta</th>
+                    <th>Precio Compra</th>
+                    <th>Cantidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var producto in MyProperty)
+                {
+                    <tr>
+                        <td>@producto.Nombre</td>
+                        <td>@producto.Descripcion</td>
+                        <td>@producto.Categoria</td>
+                        <td>@producto.Marca</td>
+                        <td>@producto.Modelo</td>
+                        <td>@producto.PrecioDeVenta</td>
+                        <td>@producto.PrecioDeCompra</td>
+                        <td>@producto.CantidadEnInventario</td>
+                        <td>
+                            <button class="btn btn-warning" @onclick="() => Seleccionar(producto.Id)">
+                                <span class="oi oi-pencil"></span> Editar
+                            </button>
+                            <button @onclick="()=>Eliminar(producto)"
+                                    class="btn btn-danger">
+                                <span class="oi oi-trash"></span> Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+
+@code
+{
+    public bool ShowForm { get; set; } = false;
+    public string Filtro { get; set; } = "";
+    public List<ProductoResponse> MyProperty { get; set; } = new List<ProductoResponse>();
+    public ProductoRequest request { get; set; } = new ProductoRequest();
+
+    private string GetFormButtonLabel()
+    {
+        return request.Id == 0 ? "Agregar" : "Modificar";
+    }
+
+    // Función para limpiar el formulario
+    void Cancelar()
+    {
+        request = new ProductoRequest();
+        ShowForm = false;
+    }
+
+    async Task CargarClientes()
+    {
+        var resultado = await ProductoServices.Consultar(Filtro);
+        if (resultado.Success)
+        {
+            MyProperty = resultado.Data!;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarClientes();
+    }
+
+    // Método para agregar o actualizar el cliente
+    public async Task EnviarCliente()
+    {
+        // Validar campos obligatorios
+        if (string.IsNullOrWhiteSpace(request.Nombre) ||
+            string.IsNullOrWhiteSpace(request.Descripcion) ||
+            string.IsNullOrWhiteSpace(request.Categoria) ||
+            string.IsNullOrWhiteSpace(request.Marca) ||
+            string.IsNullOrWhiteSpace(request.Modelo) ||
+            decimal.IsInteger(request.PrecioDeCompra) ||
+            decimal.IsOddInteger(request.PrecioDeCompra) ||
+            decimal.IsOddInteger(request.PrecioDeVenta)
+            )
+        {
+            // Mostrar mensaje de error si algún campo está vacío
+            await MostrarMensajeError("Por favor completa todos los campos.");
+            return;
+        }
+
+        // Mostrar mensaje de confirmación
+        var confirmResult = await JSRuntime.InvokeAsync<bool>("confirm", new object?[] { "¿Estás seguro de realizar esta acción?" });
+
+        if (confirmResult)
+        {
+            if (request.Id == 0)
+            {
+                // Registrar el cliente
+                var r = await ProductoServices.Crear(request);
+                if (r.Success)
+                {
+                    Cancelar();
+                    await CargarClientes();
+                    StateHasChanged();
+                    // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
+                    await MostrarMensajeExito("El cliente se ha agregado correctamente.");
+                }
+            }
+            else
+            {
+                // Actualizar el cliente
+                var r = await ProductoServices.Modificar(request);
+                if (r.Success)
+                {
+                    Cancelar();
+                    await CargarClientes();
+                    StateHasChanged();
+                    // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
+                    await MostrarMensajeExito("El cliente se ha actualizado correctamente.");
+                }
+                else if (request.Id < 0)
+                {
+                    // Eliminar el cliente
+                    var resultado = await ProductoServices.Eliminar(new ProductoRequest { Id = -request.Id });
+                    if (resultado.Success)
+                    {
+                        Cancelar();
+                        await CargarClientes();
+                        StateHasChanged();
+                        // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
+                        await MostrarMensajeExito("El cliente se ha eliminado correctamente.");
+                    }
+                }
+            }
+        }
+    }
+
+    public void Seleccionar(int Id)
+    {
+        ShowForm = true;
+        request = MyProperty.FirstOrDefault(c => c.Id == Id)?.ToRequest() ?? new ProductoRequest();
+    }
+
+    private void MostrarFormulario()
+    {
+        ShowForm = true;
+    }
+
+    public async Task Eliminar(ProductoResponse producto)
+    {
+        var confirmResult = await JSRuntime.InvokeAsync<bool>("confirm", new object?[] { "¿Estás seguro de eliminar este cliente?" });
+
+        if (confirmResult)
+        {
+            var resultado = await ProductoServices.Eliminar(producto.ToRequest());
+            if (resultado.Success)
+            {
+                await CargarClientes();
+                StateHasChanged();
+                // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
+                await MostrarMensajeExito("El cliente se ha eliminado correctamente.");
+            }
+        }
+    }
+
+    private async Task MostrarMensajeExito(string mensaje)
+    {
+        await JSRuntime.InvokeVoidAsync("alert", mensaje);
+    }
+
+    private async Task MostrarMensajeError(string mensaje)
+    {
+        await JSRuntime.InvokeVoidAsync("alert", mensaje);
+    }
+}

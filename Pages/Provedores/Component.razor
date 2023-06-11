@@ -1,7 +1,7 @@
-@page "/empleados"
+@page "/proveedores"
 @inject IJSRuntime JSRuntime
 
-<h3>Empleados (@Empleados.Count)</h3>
+<h3>Empleados (@MyProperty.Count)</h3>
 
 @if (!ShowForm)
 {
@@ -16,38 +16,22 @@
 <div class="container">
     @if (ShowForm)
     {
-        <EditForm Model="request" OnValidSubmit="EnviarEmpleado">
+        <EditForm Model="request" OnValidSubmit="EnviarCliente">
             <div class="mb-3 input-group">
                 <label class="input-group-text">Nombre</label>
                 <InputText class="form-control" @bind-Value="@request.Nombre"></InputText>
             </div>
             <div class="mb-3 input-group">
-                <label class="input-group-text">Apellido</label>
-                <InputText class="form-control" @bind-Value="@request.Apellido"></InputText>
-            </div>
-            <div class="mb-3 input-group">
-                <label class="input-group-text">Dirección</label>
+                <label class="input-group-text">Direccion</label>
                 <InputText class="form-control" @bind-Value="@request.Direccion"></InputText>
             </div>
             <div class="mb-3 input-group">
-                <label class="input-group-text">Teléfono</label>
+                <label class="input-group-text">Telefono</label>
                 <InputText class="form-control" @bind-Value="@request.Telefono"></InputText>
             </div>
             <div class="mb-3 input-group">
-                <label class="input-group-text">Correo Electrónico</label>
+                <label class="input-group-text">CorreoElectronico</label>
                 <InputText class="form-control" @bind-Value="@request.CorreoElectronico"></InputText>
-            </div>
-            <div class="mb-3 input-group">
-                <label class="input-group-text">Cargo</label>
-                <InputText class="form-control" @bind-Value="@request.Cargo"></InputText>
-            </div>
-            <div class="mb-3 input-group">
-                <label class="input-group-text">Fecha De Contratacion</label>
-                <InputText class="form-control" @bind-Value="@request.FechaDeContratacion"></InputText>
-            </div>
-            <div class="mb-3 input-group">
-                <label class="input-group-text">Salario</label>
-                <InputText class="form-control" @bind-Value="@request.Salario"></InputText>
             </div>
 
             <div class="btn-group">
@@ -63,39 +47,30 @@
         </EditForm>
         <br />
     }
-
     @if (!ShowForm)
     {
         <table class="table">
             <thead>
                 <tr>
                     <th>Nombre</th>
-                    <th>Apellido</th>
                     <th>Direccion</th>
                     <th>Telefono</th>
-                    <th>Correo Electronico</th>
-                    <th>Cargo</th>
-                    <th>Fecha De Contratñ</th>
-                    <th>Salario</th>
+                    <th>CorreoElectronico</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var empleado in Empleados)
+                @foreach (var producto in MyProperty)
                 {
                     <tr>
-                        <td>@empleado.Nombre</td>
-                        <td>@empleado.Apellido</td>
-                        <td>@empleado.Direccion</td>
-                        <td>@empleado.Telefono</td>
-                        <td>@empleado.CorreoElectronico</td>
-                        <td>@empleado.Cargo</td>
-                        <td>@empleado.FechaDeContratacion</td>
-                        <td>@empleado.SalarioBase</td>
+                        <td>@producto.Nombre</td>
+                        <td>@producto.Direccion</td>
+                        <td>@producto.Telefono</td>
+                        <td>@producto.CorreoElectronico</td>
                         <td>
-                            <button class="btn btn-warning" @onclick="() => Seleccionar(cliente.Id)">
+                            <button class="btn btn-warning" @onclick="() => Seleccionar(producto.Id)">
                                 <span class="oi oi-pencil"></span> Editar
                             </button>
-                            <button @onclick="()=>Eliminar(cliente)"
+                            <button @onclick="()=>Eliminar(producto)"
                                     class="btn btn-danger">
                                 <span class="oi oi-trash"></span> Eliminar
                             </button>
@@ -107,100 +82,95 @@
     }
 </div>
 
+
 @code
 {
     public bool ShowForm { get; set; } = false;
-    public string Filtro { get; set; } = " ";
-
-    public List<EmpleadoResponse> Empleados { get; set; } = new List<EmpleadoResponse>();
-
-    public EmpleadoRequest request { get; set; } = new EmpleadoRequest();
+    public string Filtro { get; set; } = "";
+    public List<ProveedorResponse> MyProperty { get; set; } = new List<ProveedorResponse>();
+    public ProveedorRequest request { get; set; } = new ProveedorRequest();
 
     private string GetFormButtonLabel()
     {
         return request.Id == 0 ? "Agregar" : "Modificar";
     }
 
-    // Función para limpiar el formulario
+    // FunciÃ³n para limpiar el formulario
     void Cancelar()
     {
-        request = new EmpleadoRequest();
+        request = new ProveedorRequest();
         ShowForm = false;
     }
 
-    async Task CargarEmpleados()
+    async Task CargarProveedores()
     {
-        var resultado = await EmpleadoServices.Consultar(Filtro);
+        var resultado = await ProveedorServices.Consultar(Filtro);
         if (resultado.Success)
         {
-            Empleados = resultado.Data!;
+            MyProperty = resultado.Data!;
         }
     }
 
     protected override async Task OnInitializedAsync()
     {
-        await CargarEmpleados();
+        await CargarProveedores();
     }
 
-    // Método para agregar o actualizar el cliente
+    // MÃ©todo para agregar o actualizar el cliente
     public async Task EnviarCliente()
     {
         // Validar campos obligatorios
         if (string.IsNullOrWhiteSpace(request.Nombre) ||
-            string.IsNullOrWhiteSpace(request.Apellido) ||
             string.IsNullOrWhiteSpace(request.Direccion) ||
             string.IsNullOrWhiteSpace(request.Telefono) ||
-            string.IsNullOrWhiteSpace(request.CorreoElectronico) ||
-            string.IsNullOrWhiteSpace(request.Cargo) ||
-            string.IsNullOrWhiteSpace(request.FechaDeContratacion) ||
-            string.IsNullOrWhiteSpace(request.SalarioBase))
-    )
+            string.IsNullOrWhiteSpace(request.CorreoElectronico)
+            )
         {
-            // Mostrar mensaje de error si algún campo está vacío
+            // Mostrar mensaje de error si algÃºn campo estÃ¡ vacÃ­o
             await MostrarMensajeError("Por favor completa todos los campos.");
             return;
         }
 
-        // Mostrar mensaje de confirmación
-        var confirmResult = await JSRuntime.InvokeAsync<bool>("confirm", new object?[] { "¿Estás seguro de realizar esta acción?" });
+        // Mostrar mensaje de confirmaciÃ³n
+        var confirmResult = await JSRuntime.InvokeAsync<bool>("confirm", new object?[] { "Â¿EstÃ¡s seguro de realizar esta acciÃ³n?" });
 
         if (confirmResult)
         {
             if (request.Id == 0)
             {
                 // Registrar el cliente
-                var r = await EmpleadoServices.Crear(request);
+                var r = await ProveedorServices.Crear(request);
                 if (r.Success)
                 {
                     Cancelar();
-                    await CargarEmpleados();
+                    await CargarProveedores();
                     StateHasChanged();
-                    // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
+                    // Mostrar mensaje de Ã©xito utilizando una alerta de Bootstrap:
                     await MostrarMensajeExito("El cliente se ha agregado correctamente.");
                 }
             }
             else
             {
                 // Actualizar el cliente
-                var r = await EmpleadoServices.Modificar(request);
+                var r = await ProveedorServices.Modificar(request);
                 if (r.Success)
                 {
                     Cancelar();
-                    await CargarEmpleados();
+                    await CargarProveedores();
                     StateHasChanged();
-                    // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
+                    // Mostrar mensaje de Ã©xito utilizando una alerta de Bootstrap:
                     await MostrarMensajeExito("El cliente se ha actualizado correctamente.");
                 }
                 else if (request.Id < 0)
                 {
                     // Eliminar el cliente
-                    var resultado = await EmpleadoServices.Eliminar(new EmpleadoRequest { Id = -request.Id });
+                    var resultado = await ProveedorServices.Eliminar(new ProveedorRequest { Id = -request.Id });
                     if (resultado.Success)
                     {
                         Cancelar();
-                        await CargarEmpleados();
+                        await CargarProveedores();
                         StateHasChanged();
-                        // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
+                        // Mostrar mensaje de Ã©xito utilizando una alerta de Bootstrap:
                         await MostrarMensajeExito("El cliente se ha eliminado correctamente.");
                     }
                 }
@@ -211,7 +181,7 @@
     public void Seleccionar(int Id)
     {
         ShowForm = true;
-        request = Empleados.FirstOrDefault(c => c.Id == Id)?.ToRequest() ?? new EmpleadoRequest();
+        request = MyProperty.FirstOrDefault(c => c.Id == Id)?.ToRequest() ?? new ProveedorRequest();
     }
 
     private void MostrarFormulario()
@@ -219,18 +189,18 @@
         ShowForm = true;
     }
 
-    public async Task Eliminar(EmpleadoResponse cliente)
+    public async Task Eliminar(ProveedorResponse proveedor)
     {
-        var confirmResult = await JSRuntime.InvokeAsync<bool>("confirm", new object?[] { "¿Estás seguro de eliminar este cliente?" });
+        var confirmResult = await JSRuntime.InvokeAsync<bool>("confirm", new object?[] { "Â¿EstÃ¡s seguro de eliminar este cliente?" });
 
         if (confirmResult)
         {
-            var resultado = await EmpleadoServices.Eliminar(empleado.ToRequest());
+            var resultado = await ProveedorServices.Eliminar(proveedor.ToRequest());
             if (resultado.Success)
             {
-                await CargarEmpleados();
+                await CargarProveedores();
                 StateHasChanged();
-                // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
+                // Mostrar mensaje de Ã©xito utilizando una alerta de Bootstrap:
                 await MostrarMensajeExito("El cliente se ha eliminado correctamente.");
             }
         }
