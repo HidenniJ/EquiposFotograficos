@@ -1,7 +1,7 @@
 @page "/proveedores"
 @inject IJSRuntime JSRuntime
 
-<h3>Empleados (@MyProperty.Count)</h3>
+<h3>Proveedores (@MyProperty.Count)</h3>
 
 @if (!ShowForm)
 {
@@ -104,7 +104,9 @@
 
     async Task CargarProveedores()
     {
-        var resultado = await ProveedorServices.Consultar(Filtro);
+        //Correciones
+        var resultado = await ProveedorServices.Consultar();
+
         if (resultado.Success)
         {
             MyProperty = resultado.Data!;
@@ -152,7 +154,10 @@
             else
             {
                 // Actualizar el cliente
-                var r = await ProveedorServices.Modificar(request);
+                //Corecciones
+                var r = await ProveedorServices.Modificar(request.Id, request);
+
+
                 if (r.Success)
                 {
                     Cancelar();
@@ -164,7 +169,12 @@
                 else if (request.Id < 0)
                 {
                     // Eliminar el cliente
-                    var resultado = await ProveedorServices.Eliminar(new ProveedorRequest { Id = -request.Id });
+
+                    //Coreccion 
+                    // Eliminar el cliente
+                    // Corrección
+                    var resultado = await ProveedorServices.Eliminar(request.Id);
+
                     if (resultado.Success)
                     {
                         Cancelar();
@@ -173,6 +183,7 @@
                         // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
                         await MostrarMensajeExito("El cliente se ha eliminado correctamente.");
                     }
+
                 }
             }
         }
@@ -195,7 +206,8 @@
 
         if (confirmResult)
         {
-            var resultado = await ProveedorServices.Eliminar(proveedor.ToRequest());
+            //Correcion
+            var resultado = await ProveedorServices.Eliminar(proveedor.Id);
             if (resultado.Success)
             {
                 await CargarProveedores();

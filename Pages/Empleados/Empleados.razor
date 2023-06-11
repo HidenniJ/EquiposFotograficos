@@ -126,7 +126,7 @@
         ShowForm = false;
     }
 
-    async Task CargarClientes()
+    async Task CargarEmpleados()
     {
         var resultado = await EmpleadoServices.Consultar(Filtro);
         if (resultado.Success)
@@ -137,7 +137,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await CargarClientes();
+        await CargarEmpleados();
     }
 
     // Método para agregar o actualizar el cliente
@@ -167,7 +167,7 @@
                 if (r.Success)
                 {
                     Cancelar();
-                    await CargarClientes();
+                    await CargarEmpleados();
                     StateHasChanged();
                     // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
                     await MostrarMensajeExito("El cliente se ha agregado correctamente.");
@@ -180,7 +180,7 @@
                 if (r.Success)
                 {
                     Cancelar();
-                    await CargarClientes();
+                    await CargarEmpleados();
                     StateHasChanged();
                     // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
                     await MostrarMensajeExito("El cliente se ha actualizado correctamente.");
@@ -192,7 +192,7 @@
                     if (resultado.Success)
                     {
                         Cancelar();
-                        await CargarClientes();
+                        await CargarEmpleados();
                         StateHasChanged();
                         // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
                         await MostrarMensajeExito("El cliente se ha eliminado correctamente.");
@@ -219,10 +219,12 @@
 
         if (confirmResult)
         {
-            var resultado = await EmpleadoServices.Eliminar(empleado.ToRequest());
+            //Correcion
+           var resultado = await EmpleadoServices.Eliminar(empleado.Id);
+
             if (resultado.Success)
             {
-                await CargarClientes();
+                await CargarEmpleados();
                 StateHasChanged();
                 // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
                 await MostrarMensajeExito("El cliente se ha eliminado correctamente.");

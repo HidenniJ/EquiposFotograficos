@@ -1,7 +1,7 @@
 @page "/productos"
 @inject IJSRuntime JSRuntime
 
-<h3>Empleados (@MyProperty.Count)</h3>
+<h3>Productos (@MyProperty.Count)</h3>
 
 @if (!ShowForm)
 {
@@ -10,13 +10,12 @@
             <span class="oi oi-plus" aria-hidden="true"></span> Agregar
         </button>
     </div>
-
 }
 
 <div class="container">
     @if (ShowForm)
     {
-        <EditForm Model="request" OnValidSubmit="EnviarCliente">
+        <EditForm Model="request" OnValidSubmit="Enviarproducto">
             <div class="mb-3 input-group">
                 <label class="input-group-text">Nombre</label>
                 <InputText class="form-control" @bind-Value="@request.Nombre"></InputText>
@@ -58,23 +57,23 @@
                 <button type="button" class="btn btn-outline-danger" @onclick="Cancelar">
                     <span class="oi oi-x" aria-hidden="true"></span> Cancelar
                 </button>
-
             </div>
         </EditForm>
         <br />
     }
+
     @if (!ShowForm)
     {
         <table class="table">
             <thead>
                 <tr>
                     <th>Nombre</th>
-                    <th>Descripcio</th>
+                    @*<th>Descripcio</th>*@
                     <th>Categoria</th>
                     <th>Marca</th>
                     <th>Model</th>
                     <th>Precio Venta</th>
-                    <th>Precio Compra</th>
+                    @*<th>Precio Compra</th>*@
                     <th>Cantidad</th>
                 </tr>
             </thead>
@@ -83,19 +82,18 @@
                 {
                     <tr>
                         <td>@producto.Nombre</td>
-                        <td>@producto.Descripcion</td>
+                        @*<td>@producto.Descripcion</td>*@
                         <td>@producto.Categoria</td>
                         <td>@producto.Marca</td>
                         <td>@producto.Modelo</td>
                         <td>@producto.PrecioDeVenta</td>
-                        <td>@producto.PrecioDeCompra</td>
+                        @*<td>@producto.PrecioDeCompra</td>*@
                         <td>@producto.CantidadEnInventario</td>
                         <td>
                             <button class="btn btn-warning" @onclick="() => Seleccionar(producto.Id)">
                                 <span class="oi oi-pencil"></span> Editar
                             </button>
-                            <button @onclick="()=>Eliminar(producto)"
-                                    class="btn btn-danger">
+                            <button @onclick="()=>Eliminar(producto.ToRequest())" class="btn btn-danger">
                                 <span class="oi oi-trash"></span> Eliminar
                             </button>
                         </td>
@@ -105,7 +103,6 @@
         </table>
     }
 </div>
-
 
 @code
 {
@@ -126,9 +123,9 @@
         ShowForm = false;
     }
 
-    async Task CargarClientes()
+    async Task CargarProductos()
     {
-        var resultado = await ProductoServices.Consultar(Filtro);
+        var resultado = await ProductoServices.Consultar();
         if (resultado.Success)
         {
             MyProperty = resultado.Data!;
@@ -137,11 +134,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await CargarClientes();
+        await CargarProductos();
     }
 
     // Método para agregar o actualizar el cliente
-    public async Task EnviarCliente()
+    public async Task Enviarproducto()
     {
         // Validar campos obligatorios
         if (string.IsNullOrWhiteSpace(request.Nombre) ||
@@ -149,10 +146,8 @@
             string.IsNullOrWhiteSpace(request.Categoria) ||
             string.IsNullOrWhiteSpace(request.Marca) ||
             string.IsNullOrWhiteSpace(request.Modelo) ||
-            decimal.IsInteger(request.PrecioDeCompra) ||
-            decimal.IsOddInteger(request.PrecioDeCompra) ||
-            decimal.IsOddInteger(request.PrecioDeVenta)
-            )
+            request.PrecioDeCompra <= 0 ||
+            request.PrecioDeVenta <= 0)
         {
             // Mostrar mensaje de error si algún campo está vacío
             await MostrarMensajeError("Por favor completa todos los campos.");
@@ -171,76 +166,101 @@
                 if (r.Success)
                 {
                     Cancelar();
-                    await CargarClientes();
+                    await CargarProductos();
                     StateHasChanged();
                     // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
-                    await MostrarMensajeExito("El cliente se ha agregado correctamente.");
+                    await MostrarMensajeExito("El Producto se ha agregado correctamente.");
                 }
             }
             else
             {
                 // Actualizar el cliente
-                var r = await ProductoServices.Modificar(request);
+                var r = await ProductoServices.Modificar(request.Id, request);
+
                 if (r.Success)
                 {
                     Cancelar();
-                    await CargarClientes();
+                    await CargarProductos();
                     StateHasChanged();
                     // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
-                    await MostrarMensajeExito("El cliente se ha actualizado correctamente.");
+                    await MostrarMensajeExito("El Producto se ha actualizado correctamente.");
                 }
                 else if (request.Id < 0)
                 {
                     // Eliminar el cliente
-                    var resultado = await ProductoServices.Eliminar(new ProductoRequest { Id = -request.Id });
+                    var resultado = await ProductoServices.Eliminar(request.Id);
+
                     if (resultado.Success)
                     {
                         Cancelar();
-                        await CargarClientes();
+                        await CargarProductos();
                         StateHasChanged();
                         // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
-                        await MostrarMensajeExito("El cliente se ha eliminado correctamente.");
+                        await MostrarMensajeExito("El Producto se ha eliminado correctamente.");
                     }
                 }
             }
         }
     }
 
-    public void Seleccionar(int Id)
+    async Task MostrarMensajeExito(string mensaje)
     {
-        ShowForm = true;
-        request = MyProperty.FirstOrDefault(c => c.Id == Id)?.ToRequest() ?? new ProductoRequest();
+        await JSRuntime.InvokeVoidAsync("Swal.fire", "Éxito", mensaje, "success");
     }
 
-    private void MostrarFormulario()
+    async Task MostrarMensajeError(string mensaje)
+    {
+        await JSRuntime.InvokeVoidAsync("Swal.fire", "Error", mensaje, "error");
+    }
+
+    void MostrarFormulario()
     {
         ShowForm = true;
     }
 
-    public async Task Eliminar(ProductoResponse producto)
+    void Seleccionar(int id)
     {
-        var confirmResult = await JSRuntime.InvokeAsync<bool>("confirm", new object?[] { "¿Estás seguro de eliminar este cliente?" });
-
-        if (confirmResult)
+        ShowForm = true;
+        var producto = MyProperty.FirstOrDefault(p => p.Id == id);
+        if (producto != null)
         {
-            var resultado = await ProductoServices.Eliminar(producto.ToRequest());
-            if (resultado.Success)
-            {
-                await CargarClientes();
-                StateHasChanged();
-                // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
-                await MostrarMensajeExito("El cliente se ha eliminado correctamente.");
-            }
+            request = new ProductoRequest
+                {
+                    Id = producto.Id,
+                    Nombre = producto.Nombre,
+                    Descripcion = producto.Descripcion,
+                    Categoria = producto.Categoria,
+                    Marca = producto.Marca,
+                    Modelo = producto.Modelo,
+                    PrecioDeVenta = producto.PrecioDeVenta,
+                    PrecioDeCompra = producto.PrecioDeCompra,
+                    CantidadEnInventario = producto.CantidadEnInventario
+                };
         }
     }
 
-    private async Task MostrarMensajeExito(string mensaje)
+    async Task Eliminar(ProductoRequest producto)
     {
-        await JSRuntime.InvokeVoidAsync("alert", mensaje);
-    }
+        // Mostrar mensaje de confirmación
+        var confirmResult = await JSRuntime.InvokeAsync<bool>("confirm", new object?[] { "¿Estás seguro de eliminar este producto?" });
 
-    private async Task MostrarMensajeError(string mensaje)
-    {
-        await JSRuntime.InvokeVoidAsync("alert", mensaje);
+        if (confirmResult)
+        {
+            var resultado = await ProductoServices.Eliminar(producto.Id);
+
+            if (resultado.Success)
+            {
+                await CargarProductos();
+                StateHasChanged();
+                // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
+                await MostrarMensajeExito("El producto se ha eliminado correctamente.");
+            }
+            else
+            {
+                // Mostrar mensaje de error utilizando una alerta de Bootstrap:
+                await MostrarMensajeError("No se pudo eliminar el producto.");
+            }
+        }
     }
 }
+
