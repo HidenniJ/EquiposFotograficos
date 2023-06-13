@@ -60,6 +60,8 @@
                     <th>Nombre</th>
                     <th>Apellido</th>
                     <th>Direccion</th>
+                    <th>Telefono</th>
+                    <th>Gmail</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -70,6 +72,8 @@
                         <td>@cliente.Nombre</td>
                         <td>@cliente.Apellido</td>
                         <td>@cliente.Direccion</td>
+                        <td>@cliente.Telefono</td>
+                        <td>@cliente.CorreoElectronico</td>
                         <td>
                             <button class="btn btn-warning" @onclick="() => Seleccionar(cliente.Id)">
                                 <span class="oi oi-pencil"></span> Editar

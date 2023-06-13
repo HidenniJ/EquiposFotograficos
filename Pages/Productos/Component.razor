@@ -68,13 +68,12 @@
             <thead>
                 <tr>
                     <th>Nombre</th>
-                    @*<th>Descripcio</th>*@
-                    <th>Categoria</th>
+                    @*<th>Categoria</th>
                     <th>Marca</th>
-                    <th>Model</th>
+                    <th>Modelo</th>*@
                     <th>Precio Venta</th>
-                    @*<th>Precio Compra</th>*@
                     <th>Cantidad</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -82,18 +81,19 @@
                 {
                     <tr>
                         <td>@producto.Nombre</td>
-                        @*<td>@producto.Descripcion</td>*@
-                        <td>@producto.Categoria</td>
+                        @*<td>@producto.Categoria</td>
                         <td>@producto.Marca</td>
-                        <td>@producto.Modelo</td>
+                        <td>@producto.Modelo</td>*@
                         <td>@producto.PrecioDeVenta</td>
-                        @*<td>@producto.PrecioDeCompra</td>*@
                         <td>@producto.CantidadEnInventario</td>
                         <td>
                             <button class="btn btn-warning" @onclick="() => Seleccionar(producto.Id)">
                                 <span class="oi oi-pencil"></span> Editar
                             </button>
-                            <button @onclick="()=>Eliminar(producto.ToRequest())" class="btn btn-danger">
+                            <button @onclick="() => MostrarDetalles(producto.Id)" class="btn btn-primary">
+                                <span class="oi oi-eye"></span> Detalles
+                            </button>
+                            <button @onclick="() => Eliminar(producto.ToRequest())" class="btn btn-danger">
                                 <span class="oi oi-trash"></span> Eliminar
                             </button>
                         </td>
@@ -104,12 +104,40 @@
     }
 </div>
 
+@if (ShowDetails)
+{
+    @if (selectedProducto != null)
+    {
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">Detalles del producto</h5>
+                <p><strong>Nombre:</strong> @selectedProducto.Nombre</p>
+                <p><strong>Descripción:</strong> @selectedProducto.Descripcion</p>
+                <p><strong>Categoría:</strong> @selectedProducto.Categoria</p>
+                <p><strong>Marca:</strong> @selectedProducto.Marca</p>
+                <p><strong>Modelo:</strong> @selectedProducto.Modelo</p>
+                <p><strong>Precio de Venta:</strong> @selectedProducto.PrecioDeVenta</p>
+                <p><strong>Cantidad en Inventario:</strong> @selectedProducto.CantidadEnInventario</p>
+               
+               
+                
+                <button class="btn btn-danger" @onclick="OcultarDetalles">
+                    <span class="oi oi-x"></span> Cerrar
+                </button>
+            </div>
+        </div>
+    }
+
+}
+
 @code
 {
     public bool ShowForm { get; set; } = false;
+    public bool ShowDetails { get; set; } = false;
     public string Filtro { get; set; } = "";
     public List<ProductoResponse> MyProperty { get; set; } = new List<ProductoResponse>();
     public ProductoRequest request { get; set; } = new ProductoRequest();
+    public ProductoResponse selectedProducto { get; set; } = new ProductoResponse();
 
     private string GetFormButtonLabel()
     {
@@ -137,7 +165,7 @@
         await CargarProductos();
     }
 
-    // Método para agregar o actualizar el cliente
+    // Método para agregar o actualizar el producto
     public async Task Enviarproducto()
     {
         // Validar campos obligatorios
@@ -161,7 +189,7 @@
         {
             if (request.Id == 0)
             {
-                // Registrar el cliente
+                // Registrar el producto
                 var r = await ProductoServices.Crear(request);
                 if (r.Success)
                 {
@@ -174,7 +202,7 @@
             }
             else
             {
-                // Actualizar el cliente
+                // Actualizar el producto
                 var r = await ProductoServices.Modificar(request.Id, request);
 
                 if (r.Success)
@@ -187,7 +215,7 @@
                 }
                 else if (request.Id < 0)
                 {
-                    // Eliminar el cliente
+                    // Eliminar el producto
                     var resultado = await ProductoServices.Eliminar(request.Id);
 
                     if (resultado.Success)
@@ -225,17 +253,17 @@
         if (producto != null)
         {
             request = new ProductoRequest
-                {
-                    Id = producto.Id,
-                    Nombre = producto.Nombre,
-                    Descripcion = producto.Descripcion,
-                    Categoria = producto.Categoria,
-                    Marca = producto.Marca,
-                    Modelo = producto.Modelo,
-                    PrecioDeVenta = producto.PrecioDeVenta,
-                    PrecioDeCompra = producto.PrecioDeCompra,
-                    CantidadEnInventario = producto.CantidadEnInventario
-                };
+            {
+                Id = producto.Id,
+                Nombre = producto.Nombre,
+                Descripcion = producto.Descripcion,
+                Categoria = producto.Categoria,
+                Marca = producto.Marca,
+                Modelo = producto.Modelo,
+                PrecioDeVenta = producto.PrecioDeVenta,
+                PrecioDeCompra = producto.PrecioDeCompra,
+                CantidadEnInventario = producto.CantidadEnInventario
+            };
         }
     }
 
@@ -262,5 +290,20 @@
             }
         }
     }
+
+    void MostrarDetalles(int id)
+    {
+        selectedProducto = MyProperty.FirstOrDefault(p => p.Id == id);
+        if (selectedProducto != null)
+        {
+            ShowDetails = true;
+        }
+    }
+
+    void OcultarDetalles()
+    {
+        ShowDetails = false;
+    }
 }
+
 

@@ -1,5 +1,6 @@
 @page "/proveedores"
 @inject IJSRuntime JSRuntime
+@using System
 
 <h3>Proveedores (@MyProperty.Count)</h3>
 
@@ -10,7 +11,6 @@
             <span class="oi oi-plus" aria-hidden="true"></span> Agregar
         </button>
     </div>
-
 }
 
 <div class="container">
@@ -42,7 +42,6 @@
                 <button type="button" class="btn btn-outline-danger" @onclick="Cancelar">
                     <span class="oi oi-x" aria-hidden="true"></span> Cancelar
                 </button>
-
             </div>
         </EditForm>
         <br />
@@ -53,32 +52,52 @@
             <thead>
                 <tr>
                     <th>Nombre</th>
-                    <th>Direccion</th>
-                    <th>Telefono</th>
-                    <th>CorreoElectronico</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var producto in MyProperty)
+                @foreach (var proveedor in MyProperty)
                 {
                     <tr>
-                        <td>@producto.Nombre</td>
-                        <td>@producto.Direccion</td>
-                        <td>@producto.Telefono</td>
-                        <td>@producto.CorreoElectronico</td>
+                        <td>@proveedor.Nombre</td>
+                        @*<td>@proveedor.Direccion</td>
+                        <td>@proveedor.Telefono</td>
+                        <td>@proveedor.CorreoElectronico</td>*@
                         <td>
-                            <button class="btn btn-warning" @onclick="() => Seleccionar(producto.Id)">
+                            <button class="btn btn-warning" @onclick="() => Seleccionar(proveedor.Id)">
                                 <span class="oi oi-pencil"></span> Editar
                             </button>
-                            <button @onclick="()=>Eliminar(producto)"
+                            <button @onclick="()=>MostrarDetalles(proveedor.Id)" class="btn btn-primary">
+                                <span class="oi oi-eye"></span> Detalles
+                            </button>
+                            <button @onclick="()=>Eliminar(proveedor)"
                                     class="btn btn-danger">
                                 <span class="oi oi-trash"></span> Eliminar
                             </button>
+                            
+
                         </td>
                     </tr>
                 }
             </tbody>
         </table>
+    }
+
+    @if (ProveedorSeleccionado != null)
+    {
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">Detalles del proveedor</h5>
+                <p><strong>Nombre:</strong> @ProveedorSeleccionado.Nombre</p>
+                <p><strong>Dirección:</strong> @ProveedorSeleccionado.Direccion</p>
+                <p><strong>Teléfono:</strong> @ProveedorSeleccionado.Telefono</p>
+                <p><strong>Correo electrónico:</strong> @ProveedorSeleccionado.CorreoElectronico</p>
+                <button class="btn btn-danger" @onclick="CerrarDetalles">
+                    <span class="oi oi-x"></span> Cerrar
+                </button>
+
+            </div>
+        </div>
     }
 </div>
 
@@ -89,6 +108,7 @@
     public string Filtro { get; set; } = "";
     public List<ProveedorResponse> MyProperty { get; set; } = new List<ProveedorResponse>();
     public ProveedorRequest request { get; set; } = new ProveedorRequest();
+    public ProveedorResponse ProveedorSeleccionado { get; set; }
 
     private string GetFormButtonLabel()
     {
@@ -104,7 +124,6 @@
 
     async Task CargarProveedores()
     {
-        //Correciones
         var resultado = await ProveedorServices.Consultar();
 
         if (resultado.Success)
@@ -118,7 +137,7 @@
         await CargarProveedores();
     }
 
-    // Método para agregar o actualizar el cliente
+    // Método para agregar o actualizar el proveedor
     public async Task EnviarCliente()
     {
         // Validar campos obligatorios
@@ -126,7 +145,7 @@
             string.IsNullOrWhiteSpace(request.Direccion) ||
             string.IsNullOrWhiteSpace(request.Telefono) ||
             string.IsNullOrWhiteSpace(request.CorreoElectronico)
-            )
+        )
         {
             // Mostrar mensaje de error si algún campo está vacío
             await MostrarMensajeError("Por favor completa todos los campos.");
@@ -134,13 +153,13 @@
         }
 
         // Mostrar mensaje de confirmación
-        var confirmResult = await JSRuntime.InvokeAsync<bool>("confirm", new object?[] { "¿Estás seguro de realizar esta acción?" });
+        var confirmResult = await JSRuntime.InvokeAsync<bool>("confirm", "¿Estás seguro de realizar esta acción?");
 
         if (confirmResult)
         {
             if (request.Id == 0)
             {
-                // Registrar el cliente
+                // Registrar el proveedor
                 var r = await ProveedorServices.Crear(request);
                 if (r.Success)
                 {
@@ -148,15 +167,13 @@
                     await CargarProveedores();
                     StateHasChanged();
                     // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
-                    await MostrarMensajeExito("El cliente se ha agregado correctamente.");
+                    await MostrarMensajeExito("El proveedor se ha agregado correctamente.");
                 }
             }
             else
             {
-                // Actualizar el cliente
-                //Corecciones
+                // Actualizar el proveedor
                 var r = await ProveedorServices.Modificar(request.Id, request);
-
 
                 if (r.Success)
                 {
@@ -164,26 +181,7 @@
                     await CargarProveedores();
                     StateHasChanged();
                     // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
-                    await MostrarMensajeExito("El cliente se ha actualizado correctamente.");
-                }
-                else if (request.Id < 0)
-                {
-                    // Eliminar el cliente
-
-                    //Coreccion 
-                    // Eliminar el cliente
-                    // Corrección
-                    var resultado = await ProveedorServices.Eliminar(request.Id);
-
-                    if (resultado.Success)
-                    {
-                        Cancelar();
-                        await CargarProveedores();
-                        StateHasChanged();
-                        // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
-                        await MostrarMensajeExito("El cliente se ha eliminado correctamente.");
-                    }
-
+                    await MostrarMensajeExito("El proveedor se ha actualizado correctamente.");
                 }
             }
         }
@@ -195,25 +193,24 @@
         request = MyProperty.FirstOrDefault(c => c.Id == Id)?.ToRequest() ?? new ProveedorRequest();
     }
 
-    private void MostrarFormulario()
+    public void MostrarDetalles(int Id)
     {
-        ShowForm = true;
+        ProveedorSeleccionado = MyProperty.FirstOrDefault(c => c.Id == Id);
     }
 
     public async Task Eliminar(ProveedorResponse proveedor)
     {
-        var confirmResult = await JSRuntime.InvokeAsync<bool>("confirm", new object?[] { "¿Estás seguro de eliminar este cliente?" });
+        var confirmResult = await JSRuntime.InvokeAsync<bool>("confirm", "¿Estás seguro de eliminar este proveedor?");
 
         if (confirmResult)
         {
-            //Correcion
             var resultado = await ProveedorServices.Eliminar(proveedor.Id);
             if (resultado.Success)
             {
                 await CargarProveedores();
                 StateHasChanged();
                 // Mostrar mensaje de éxito utilizando una alerta de Bootstrap:
-                await MostrarMensajeExito("El cliente se ha eliminado correctamente.");
+                await MostrarMensajeExito("El proveedor se ha eliminado correctamente.");
             }
         }
     }
@@ -226,5 +223,15 @@
     private async Task MostrarMensajeError(string mensaje)
     {
         await JSRuntime.InvokeVoidAsync("alert", mensaje);
+    }
+
+    private void MostrarFormulario()
+    {
+        ShowForm = true;
+    }
+
+    private void CerrarDetalles()
+    {
+        ProveedorSeleccionado = null;
     }
 }

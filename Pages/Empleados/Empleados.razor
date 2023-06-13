@@ -16,7 +16,7 @@
 <div class="container">
     @if (ShowForm)
     {
-        <EditForm Model="request" OnValidSubmit="EnviarCliente">
+        <EditForm Model="request" OnValidSubmit="EnviarEmpleado">
             <div class="mb-3 input-group">
                 <label class="input-group-text">Nombre</label>
                 <InputText class="form-control" @bind-Value="@request.Nombre"></InputText>
@@ -76,6 +76,7 @@
                     <th>Cargo</th>
                     <th>Fecha De Contrato</th>
                     <th>Salario</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -90,6 +91,7 @@
                         <td>@empleado.Cargo</td>
                         <td>@empleado.FechaDeContratacion</td>
                         <td>@empleado.SalarioBase</td>
+
                         <td>
                             <button class="btn btn-warning" @onclick="() => Seleccionar(empleado.Id)">
                                 <span class="oi oi-pencil"></span> Editar
@@ -141,7 +143,7 @@
     }
 
     // Método para agregar o actualizar el cliente
-    public async Task EnviarCliente()
+    public async Task EnviarEmpleado()
     {
         // Validar campos obligatorios
         if (string.IsNullOrWhiteSpace(request.Nombre) ||
@@ -188,7 +190,8 @@
                 else if (request.Id < 0)
                 {
                     // Eliminar el cliente
-                    var resultado = await ClienteServices.Eliminar(new ClienteRequest { Id = -request.Id });
+                    //var resultado = await EmpleadoServices.Eliminar(empleado.Id);
+                    var resultado = await EmpleadoServices.Eliminar(request.Id );
                     if (resultado.Success)
                     {
                         Cancelar();
@@ -220,7 +223,7 @@
         if (confirmResult)
         {
             //Correcion
-           var resultado = await EmpleadoServices.Eliminar(empleado.Id);
+            var resultado = await EmpleadoServices.Eliminar(empleado.Id);
 
             if (resultado.Success)
             {
@@ -241,4 +244,4 @@
     {
         await JSRuntime.InvokeVoidAsync("alert", mensaje);
     }
-}
+} 
