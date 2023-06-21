@@ -1,0 +1,313 @@
+﻿@page "/Facturas"
+@inject IJSRuntime JSRuntime
+@inject IVentaServices VentaServices
+@inject IClienteServices ClienteServices
+@inject IProductoServices ProductoServices
+@using EquiposFotograficos.Data.Entities
+@using EquiposFotograficos.Data.Request
+
+<h3>Listado de Ventas</h3>
+
+@if (!mostrarFormulario)
+{
+    @if (ventas != null && ventas.Any())
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var venta in ventas)
+                {
+                    <tr>
+                        <td>@venta.Cliente.Nombre</td>
+                        <td>@venta.Fecha.ToString("dd/MM/yyyy")</td>
+                        <td>@venta.Total.ToString("C")</td>
+                        <td><button class="btn btn-primary" @onclick="(() => VerDetalle(venta))">Ver Detalle</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+
+    }
+
+    <button class="btn btn-primary" @onclick="MostrarFormulario">Agregar Nueva Venta</button>
+}
+else
+{
+    <h3>Crear Nueva Venta</h3>
+
+    <div class="form-group">
+        <label>Cliente:</label>
+        <select class="form-control" @bind="ventaRequest.ClienteId">
+            <option value="">Seleccionar cliente</option>
+            @foreach (var cliente in clientes)
+            {
+                <option value="@cliente.Id">@cliente.Nombre</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Producto:</label>
+        <select class="form-control" @bind="detalleVentaRequest.ProductoId">
+            <option value="">Seleccionar producto</option>
+            @foreach (var producto in productos)
+            {
+                <option value="@producto.Id">@producto.Nombre</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Cantidad:</label>
+        <input class="form-control" type="number" @bind="detalleVentaRequest.Cantidad" />
+    </div>
+
+    <div class="form-group">
+        <label>Monto entregado:</label>
+        <input class="form-control" type="number" @bind="montoEntregado" />
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Precio Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var detalle in detallesVenta)
+            {
+                <tr>
+                    <td>@detalle.Producto.Nombre</td>
+                    <td>@detalle.Cantidad</td>
+                    <td>@detalle.PrecioVenta</td>
+                    <td>@(detalle.Cantidad * detalle.PrecioVenta)</td>
+                </tr>
+            }
+            <tr>
+                <td colspan="3" class="text-right"><strong>Total acumulado:</strong></td>
+                <td>@CalcularTotalAcumulado()</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="text-right"><strong>Monto entregado:</strong></td>
+                <td>@montoEntregado.ToString("C")</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="text-right"><strong>Monto devuelto:</strong></td>
+                <td>@CalcularMontoDevuelto()</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button class="btn btn-success" @onclick="AgregarVenta">Agregar</button>
+
+    <button class="btn btn-primary" @onclick="CrearVenta">Realizar Venta</button>
+
+    <button class="btn btn-secondary" @onclick="CancelarVenta">Cancelar</button>
+}
+
+@*Mostrar los detalles de esa venta*@
+
+@if (mostrarDetalle)
+{
+    <h3>Detalle de Venta</h3>
+
+    <div>
+
+        <p><strong>Cliente:</strong> @ventaSeleccionada.Cliente.Nombre</p>
+
+        <p><strong>Fecha:</strong> @ventaSeleccionada.Fecha.ToString("dd/MM/yyyy")</p>
+
+        <p><strong>Total:</strong> @ventaSeleccionada.Total.ToString("C")</p>
+
+    </div>
+
+
+    <button class="btn btn-secondary" @onclick="(() => mostrarDetalle = false)">Volver</button>
+}
+
+@code {
+    private bool mostrarFormulario = false;
+    private bool mostrarDetalle = false;
+    private VentaRequest ventaRequest = new VentaRequest();
+    private DetalleVenta detalleVentaRequest = new DetalleVenta();
+    private List<ClienteResponse> clientes = new List<ClienteResponse>();
+    private List<ProductoResponse> productos = new List<ProductoResponse>();
+    private List<DetalleVenta> detallesVenta = new List<DetalleVenta>();
+    private List<VentaResponse> ventas = new List<VentaResponse>();
+    private decimal totalAcumulado = 0;
+    private decimal montoEntregado = 0;
+    private VentaResponse ventaSeleccionada = new VentaResponse();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Obtener la lista de ventas
+        var ventasResult = await VentaServices.ListarVentas();
+        if (ventasResult.Success)
+        {
+            ventas = ventasResult.Data;
+        }
+
+        // Obtener la lista de clientes
+        var clientesResult = await ClienteServices.Consultar("");
+        if (clientesResult.Success)
+        {
+            clientes = clientesResult.Data;
+        }
+
+        // Obtener la lista de productos
+        var productosResult = await ProductoServices.Consultar();
+        if (productosResult.Success)
+        {
+            productos = productosResult.Data;
+        }
+    }
+
+    private async Task AgregarVenta()
+    {
+        // Validar que se haya seleccionado un cliente y la cantidad sea mayor a 0
+        if (ventaRequest.ClienteId != 0 && detalleVentaRequest.Cantidad > 0)
+        {
+            // Obtener el producto seleccionado
+            var productoResponse = productos.FirstOrDefault(p => p.Id == detalleVentaRequest.ProductoId);
+            if (productoResponse != null)
+            {
+                // Convertir el ProductoResponse a Producto
+                var producto = new Producto
+                    {
+                        Id = productoResponse.Id,
+                        Nombre = productoResponse.Nombre,
+                        PrecioDeVenta = productoResponse.PrecioDeVenta
+
+                    };
+
+                // Crear el detalle de venta
+                var detalleVenta = new DetalleVenta
+                    {
+                        Producto = producto,
+                        Cantidad = detalleVentaRequest.Cantidad,
+                        PrecioVenta = producto.PrecioDeVenta
+                    };
+
+                // Agregar el detalle a la lista de detalles de venta
+                detallesVenta.Add(detalleVenta);
+
+                // Actualizar el total acumulado
+                totalAcumulado = CalcularTotalAcumulado();
+
+                // Limpiar el formulario de detalle de venta
+                detalleVentaRequest = new DetalleVenta();
+            }
+        }
+    }
+
+    private decimal CalcularTotalAcumulado()
+    {
+        return detallesVenta.Sum(d => d.Cantidad * d.PrecioVenta);
+    }
+
+    private decimal CalcularMontoDevuelto()
+    {
+        return montoEntregado - totalAcumulado;
+    }
+
+    private async Task CrearVenta()
+    {
+        // Validar que se haya seleccionado un cliente y se haya ingresado el monto entregado
+        if (ventaRequest.ClienteId != 0 && montoEntregado > 0)
+        {
+            // Obtener el cliente seleccionado
+            var clienteResponse = clientes.FirstOrDefault(c => c.Id == ventaRequest.ClienteId);
+            if (clienteResponse != null)
+            {
+                // Convertir el ClienteResponse a Cliente
+                var cliente = new Cliente
+                    {
+                        Id = clienteResponse.Id,
+                        Nombre = clienteResponse.Nombre
+                    };
+
+                // Crear el objeto Venta con los datos correctos
+                var venta = new Venta
+                    {
+                        Cliente = cliente,
+                        DetallesVenta = detallesVenta,
+                        Fecha = DateTime.Now,
+                        Total = totalAcumulado
+                    };
+
+                // Convertir la venta a VentaRequest
+                var ventaRequest = new VentaRequest
+                    {
+                        ClienteId = venta.Cliente.Id,
+                        DetallesVenta = detallesVenta, // Cambiar DetallesVenta por detallesVenta
+                        Fecha = venta.Fecha,
+                        Total = venta.Total
+                    };
+
+
+                // Realizar la venta
+                var resultado = await VentaServices.CrearVenta(ventaRequest);
+                if (resultado.Success)
+                {
+                    // Mostrar mensaje de éxito
+                    await JSRuntime.InvokeVoidAsync("alert", "La venta se realizó correctamente.");
+
+                    // Limpiar el formulario
+                    ventaRequest = new VentaRequest();
+                    detalleVentaRequest = new DetalleVenta();
+                    detallesVenta.Clear();
+                    totalAcumulado = 0;
+                    montoEntregado = 0;
+
+                    // Actualizar la lista de ventas
+                    var ventasResult = await VentaServices.ListarVentas();
+                    if (ventasResult.Success)
+                    {
+                        ventas = ventasResult.Data;
+                    }
+                }
+                else
+                {
+                    // Mostrar mensaje de error
+                    await JSRuntime.InvokeVoidAsync("alert", "Error al realizar la venta. Por favor, inténtelo nuevamente.");
+                }
+            }
+        }
+    }
+
+
+
+    private void MostrarFormulario()
+    {
+        mostrarFormulario = true;
+    }
+
+    private void CancelarVenta()
+    {
+        mostrarFormulario = false;
+        ventaRequest = new VentaRequest();
+        detalleVentaRequest = new DetalleVenta();
+        detallesVenta.Clear();
+        totalAcumulado = 0;
+        montoEntregado = 0;
+    }
+    private void VerDetalle(VentaResponse venta)
+    {
+        ventaSeleccionada = venta;
+        detallesVenta = detallesVenta;
+        mostrarDetalle = true;
+    }
+}
