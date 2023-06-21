@@ -1,4 +1,4 @@
-﻿using EquiposFotograficos.Data.Request;
+﻿ using EquiposFotograficos.Data.Request;
 
 namespace EquiposFotograficos.Data.Response
 {

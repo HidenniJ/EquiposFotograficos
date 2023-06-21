@@ -45,6 +45,7 @@ namespace EquiposFotograficos.Data.Services
             try
             {
                 var ventas = await dbContext.Ventas
+                    .Include(v => v.Cliente)
                     .Include(v => v.DetallesVenta)
                     .ToListAsync();
 
