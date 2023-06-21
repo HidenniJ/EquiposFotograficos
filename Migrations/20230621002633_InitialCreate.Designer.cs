@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EquiposFotograficos.Migrations
 {
     [DbContext(typeof(EquiposFotograficoDbContext))]
-    [Migration("20230610224148_InitialCreate")]
+    [Migration("20230621002633_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -313,7 +313,7 @@ namespace EquiposFotograficos.Migrations
 
             modelBuilder.Entity("EquiposFotograficos.Data.Entities.Venta", b =>
                 {
-                    b.HasOne("EquiposFotograficos.Data.Entities.Usuario", "Cliente")
+                    b.HasOne("EquiposFotograficos.Data.Entities.Cliente", "Cliente")
                         .WithMany()
                         .HasForeignKey("ClienteId")
                         .OnDelete(DeleteBehavior.Cascade)
