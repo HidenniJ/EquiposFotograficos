@@ -6,6 +6,7 @@
 @using EquiposFotograficos.Data.Entities
 @using EquiposFotograficos.Data.Request
 
+
 <h3>Listado de Ventas</h3>
 
 @if (!mostrarFormulario)
@@ -36,104 +37,166 @@
     }
     else
     {
-
+        <p>No hay ventas registradas.</p>
     }
 
     <button class="btn btn-primary" @onclick="MostrarFormulario">Agregar Nueva Venta</button>
 }
 else
 {
-    <h3>Crear Nueva Venta</h3>
+    
 
-    <div class="form-group">
-        <label>Cliente:</label>
-        <select class="form-control" @bind="ventaRequest.ClienteId">
-            <option value="">Seleccionar cliente</option>
-            @foreach (var cliente in clientes)
-            {
-                <option value="@cliente.Id">@cliente.Nombre</option>
-            }
-        </select>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title"> Agregar Nueva Venta</h4>
+
+                    <div class="form-group">
+                        <label>Cliente:</label>
+                        <select class="form-control" @bind="ventaRequest.ClienteId">
+                            <option value="">Seleccionar cliente</option>
+                            @foreach (var cliente in clientes)
+                            {
+                                <option value="@cliente.Id">@cliente.Nombre</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Producto:</label>
+                        <select class="form-control" @bind="detalleVentaRequest.ProductoId">
+                            <option value="">Seleccionar producto</option>
+                            @foreach (var producto in productos)
+                            {
+                                <option value="@producto.Id">@producto.Nombre</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cantidad:</label>
+                        <input class="form-control" type="number" @bind="detalleVentaRequest.Cantidad" />
+                    </div>
+
+                    <div class="text-center">
+                        <button class="btn btn-success" @onclick="AgregarVenta">
+                            <i class="oi oi-plus"></i> Agregar
+                        </button>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-3">
+                        <button class="btn btn-danger mr-2" @onclick="CancelarVenta">
+                            <i class="oi oi-x"></i> Cancelar
+                        </button>
+
+                        <button class="btn btn-primary" @onclick="CrearVenta">
+                            <i class="oi oi-transfer"></i> Realizar Venta
+                        </button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+       @* Resumen*@
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Resumen de Venta</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio Unitario</th>
+                                <th>Precio Total</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var detalle in detallesVenta)
+                            {
+                                <tr>
+                                    <td>@detalle.Producto.Nombre</td>
+                                    <td>@detalle.Cantidad</td>
+                                    <td>@detalle.PrecioVenta.ToString("C")</td>
+                                    <td>@(detalle.Cantidad * detalle.PrecioVenta)</td>
+                                    <td>
+                                        <button class="btn btn-danger" @onclick="(() => EliminarDetalleVenta(detalle))">
+                                            <span class="oi oi-trash"></span>
+                                        </button>
+                                    </td>
+
+                                </tr>
+                            }
+
+                            <tr>
+                                <td colspan="3" class="text-right"><strong>Total acumulado:</strong></td>
+                                <td class="total-acumulado">@totalAcumulado.ToString("C")</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="text-right"><strong>Monto entregado:</strong></td>
+                                <td class="monto-entregado">@montoEntregado.ToString("C")</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="text-right"><strong>Monto devuelto:</strong></td>
+                                <td class="monto-devuelto">@CalcularMontoDevuelto().ToString("C")</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+
+                    <style>
+                        .total-acumulado {
+                            color: blue;
+                            font-size: 20px;
+                        }
+
+                        .monto-entregado {
+                            color: green;
+                            font-size: 20px;
+                        }
+
+                        .monto-devuelto {
+                            color: red;
+                            font-size: 20px;
+                        }
+                    </style>
+
+
+                </div>
+                <div class="form-group">
+                    <label>Monto entregado:</label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">$</span>
+                        </div>
+                        <input class="form-control form-control-lg" type="number" @bind="montoEntregado" />
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
-
-    <div class="form-group">
-        <label>Producto:</label>
-        <select class="form-control" @bind="detalleVentaRequest.ProductoId">
-            <option value="">Seleccionar producto</option>
-            @foreach (var producto in productos)
-            {
-                <option value="@producto.Id">@producto.Nombre</option>
-            }
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label>Cantidad:</label>
-        <input class="form-control" type="number" @bind="detalleVentaRequest.Cantidad" />
-    </div>
-
-    <div class="form-group">
-        <label>Monto entregado:</label>
-        <input class="form-control" type="number" @bind="montoEntregado" />
-    </div>
-
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Producto</th>
-                <th>Cantidad</th>
-                <th>Precio Unitario</th>
-                <th>Precio Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var detalle in detallesVenta)
-            {
-                <tr>
-                    <td>@detalle.Producto.Nombre</td>
-                    <td>@detalle.Cantidad</td>
-                    <td>@detalle.PrecioVenta</td>
-                    <td>@(detalle.Cantidad * detalle.PrecioVenta)</td>
-                </tr>
-            }
-            <tr>
-                <td colspan="3" class="text-right"><strong>Total acumulado:</strong></td>
-                <td>@CalcularTotalAcumulado()</td>
-            </tr>
-            <tr>
-                <td colspan="3" class="text-right"><strong>Monto entregado:</strong></td>
-                <td>@montoEntregado.ToString("C")</td>
-            </tr>
-            <tr>
-                <td colspan="3" class="text-right"><strong>Monto devuelto:</strong></td>
-                <td>@CalcularMontoDevuelto()</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <button class="btn btn-success" @onclick="AgregarVenta">Agregar</button>
-
-    <button class="btn btn-primary" @onclick="CrearVenta">Realizar Venta</button>
-
-    <button class="btn btn-secondary" @onclick="CancelarVenta">Cancelar</button>
 }
 
-@*Mostrar los detalles de esa venta*@
+
+
 
 @if (mostrarDetalle)
 {
     <h3>Detalle de Venta</h3>
 
     <div>
-
         <p><strong>Cliente:</strong> @ventaSeleccionada.Cliente.Nombre</p>
-
         <p><strong>Fecha:</strong> @ventaSeleccionada.Fecha.ToString("dd/MM/yyyy")</p>
-
         <p><strong>Total:</strong> @ventaSeleccionada.Total.ToString("C")</p>
-
     </div>
-
 
     <button class="btn btn-secondary" @onclick="(() => mostrarDetalle = false)">Volver</button>
 }
@@ -190,7 +253,6 @@ else
                         Id = productoResponse.Id,
                         Nombre = productoResponse.Nombre,
                         PrecioDeVenta = productoResponse.PrecioDeVenta
-
                     };
 
                 // Crear el detalle de venta
@@ -211,6 +273,11 @@ else
                 detalleVentaRequest = new DetalleVenta();
             }
         }
+    }
+    private void EliminarDetalleVenta(DetalleVenta detalle)
+    {
+        detallesVenta.Remove(detalle);
+        totalAcumulado = CalcularTotalAcumulado();
     }
 
     private decimal CalcularTotalAcumulado()
@@ -252,11 +319,10 @@ else
                 var ventaRequest = new VentaRequest
                     {
                         ClienteId = venta.Cliente.Id,
-                        DetallesVenta = detallesVenta, // Cambiar DetallesVenta por detallesVenta
+                        DetallesVenta = detallesVenta,
                         Fecha = venta.Fecha,
                         Total = venta.Total
                     };
-
 
                 // Realizar la venta
                 var resultado = await VentaServices.CrearVenta(ventaRequest);
@@ -288,8 +354,6 @@ else
         }
     }
 
-
-
     private void MostrarFormulario()
     {
         mostrarFormulario = true;
@@ -304,10 +368,10 @@ else
         totalAcumulado = 0;
         montoEntregado = 0;
     }
+
     private void VerDetalle(VentaResponse venta)
     {
         ventaSeleccionada = venta;
-        detallesVenta = detallesVenta;
         mostrarDetalle = true;
     }
 }
